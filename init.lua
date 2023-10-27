@@ -218,6 +218,13 @@ vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = tr
 vim.keymap.set("n", "<leader>pv", ":Neotree position=current<CR>", { desc = "Open Explorer" })
 vim.keymap.set("n", "<leader>nc", ":Neotree toggle<CR>", { desc = "Toggle Neotree" })
 
+-- Vertical movement keymaps
+vim.keymap.set("n", "<C-d>", "<C-d>zz")
+vim.keymap.set("n", "<C-u>", "<C-u>zz")
+
+-- Swap File Configuration
+vim.opt.swapfile = false
+
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
