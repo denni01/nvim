@@ -1,18 +1,9 @@
--- debug.lua
---
--- Shows how to use the DAP plugin to debug your code.
---
--- Primarily focused on configuring the debugger for Go, but can
--- be extended to other languages as well. That's why it's called
--- kickstart.nvim and not kitchen-sink.nvim ;)
-
 return {
-  -- NOTE: Yes, you can install new plugins here!
   'mfussenegger/nvim-dap',
-  -- NOTE: And you can specify dependencies as well
   dependencies = {
     -- Creates a beautiful debugger UI
     'rcarriga/nvim-dap-ui',
+    'theHamsta/nvim-dap-virtual-text',
 
     -- Installs the debug adapters for you
     'williamboman/mason.nvim',
@@ -20,6 +11,7 @@ return {
 
     -- Add your own debuggers here
     'leoluz/nvim-dap-go',
+    'mfussenegger/nvim-dap-python',
   },
   config = function()
     local dap = require 'dap'
@@ -29,6 +21,7 @@ return {
       -- Makes a best effort to setup the various debuggers with
       -- reasonable debug configurations
       automatic_setup = true,
+      automatic_installation = true,
 
       -- You can provide additional configuration to the handlers,
       -- see mason-nvim-dap README for more information
@@ -55,11 +48,31 @@ return {
     -- Dap UI setup
     -- For more information, see |:help nvim-dap-ui|
     dapui.setup {
-      -- Set icons to characters that are more likely to work in every terminal.
-      --    Feel free to remove or use ones that you like more! :)
-      --    Don't feel like these are good choices.
+      element_mappings = {},
+      expand_lines = true,
+      floating = {
+        border = "single",
+        mappings = {
+          close = { "q", "<Esc>" }
+        }
+      },
+      mappings = {
+        edit = "e",
+        expand = { "<CR>", "<2-LeftMouse>" },
+        open = "o",
+        remove = "d",
+        repl = "r",
+        toggle = "t"
+      },
+      render = {
+        indent = 1,
+        max_value_lines = 100
+      },
+      force_buffers = true,
       icons = { expanded = '▾', collapsed = '▸', current_frame = '*' },
       controls = {
+        element = 'repl',
+        enabled = true,
         icons = {
           pause = '⏸',
           play = '▶',
@@ -74,8 +87,13 @@ return {
       },
     }
 
+    local set_namespace = vim.api.nvim_win_set_hl_ns
+    local namespace = vim.api.nvim_create_namespace('dap-hlng')
+    vim.api.nvim_set_hl(namespace, 'DapBreakpoint', { fg = '#000000', bg = '#000000' })
+    vim.fn.sign_define('DapBreakpoint', { text = 'B', texthl = 'blue', linehl = '', numhl = '' })
+
     -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
-    vim.keymap.set('n', '<F7>', dapui.toggle, { desc = 'Debug: See last session result.' })
+    vim.keymap.set('n', '<leader>dt', dapui.toggle, { desc = 'Debug: See last session result.' })
 
     dap.listeners.after.event_initialized['dapui_config'] = dapui.open
     dap.listeners.before.event_terminated['dapui_config'] = dapui.close
@@ -83,5 +101,34 @@ return {
 
     -- Install golang specific config
     require('dap-go').setup()
+    require('dap-python').setup('python')
+    require('nvim-dap-virtual-text').setup({
+      enabled_commands = true,
+      highlight_changed_variables = true,
+      highlight_new_as_changed = false,
+      show_stop_reason = true,
+      --- A callback that determines how a variable is displayed or whether it should be omitted
+      --- @param variable Variable https://microsoft.github.io/debug-adapter-protocol/specification#Types_Variable
+      --- @param buf number
+      --- @param stackframe dap.StackFrame https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
+      --- @param node userdata tree-sitter node identified as variable definition of reference (see `:h tsnode`)
+      --- @param options nvim_dap_virtual_text_options Current options for nvim-dap-virtual-text
+      --- @return string|nil A text how the virtual text should be displayed or nil, if this variable shouldn't be displayed
+      display_callback = function(variable, buf, stackframe, node, options)
+        -- by default, strip out new line characters
+        if options.virt_text_pos == 'inline' then
+          return ' = ' .. variable.value:gsub("%s+", " ")
+        else
+          return variable.name .. ' = ' .. variable.value:gsub("%s+", " ")
+        end
+      end,
+      -- position of virtual text, see `:h nvim_buf_set_extmark()`, default tries to inline the virtual text. Use 'eol' to set to end of line
+      virt_text_pos = vim.fn.has 'nvim-0.10' == 1 and 'inline' or 'eol',
+
+      -- experimental features:
+      all_frames = false, -- show virtual text for all stack frames not only current. Only works for debugpy on my machine.
+      virt_lines = false, -- show virtual lines instead of virtual text (will flicker!)
+      virt_text_win_col = nil
+    })
   end,
 }

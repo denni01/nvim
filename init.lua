@@ -70,13 +70,100 @@ require('lazy').setup({
   { 'folke/which-key.nvim',   opts = {} },
 
   {
-    -- Gruvbox
-    'ellisonleao/gruvbox.nvim',
-    priority = 1000,
-    config = function()
-      vim.o.background = 'dark'
-      vim.cmd.colorscheme 'gruvbox'
-    end,
+    -- themes
+    {
+      'ellisonleao/gruvbox.nvim',
+      enabled = false,
+      priority = 1000,
+      config = function()
+        vim.o.background = 'light'
+        vim.cmd.colorscheme 'gruvbox'
+      end,
+    },
+    {
+      'folke/tokyonight.nvim',
+      priority = 1000,
+      enabled = false,
+      config = function()
+        vim.cmd.colorscheme 'tokyonight-day'
+      end
+    },
+    {
+      'catppuccin/nvim',
+      priority = 1000,
+      enabled = true,
+      config = function()
+        vim.cmd.colorscheme 'catppuccin-macchiato'
+      end
+    },
+    {
+      'edeneast/nightfox.nvim',
+      priority = 1000,
+      enabled = false,
+      config = function()
+        vim.cmd.colorscheme 'dawnfox'
+      end
+    },
+    {
+      'sainnhe/gruvbox-material',
+      enabled = false,
+      opts = {
+      },
+      config = function()
+        vim.o.background = 'dark'
+        vim.g.gruvbox_material_background = 'medium'
+        vim.g.gruvbox_material_foreground = 'material'
+        vim.cmd.colorscheme 'gruvbox-material'
+      end
+    },
+    {
+      'sainnhe/everforest',
+      priority = 1000,
+      enabled = false,
+      opts = {
+        background = 'light',
+      },
+      config = function()
+        vim.cmd.colorscheme 'everforest'
+        vim.o.background = 'light'
+      end
+    },
+    {
+      'nyoom-engineering/oxocarbon.nvim',
+      priority = 1000,
+      enabled = false,
+      config = function()
+        vim.cmd.colorscheme 'oxocarbon'
+        vim.o.background = 'light'
+      end
+    },
+    {
+      'sainnhe/edge',
+      priority = 1000,
+      enabled = false,
+      opts = {
+        background = 'light'
+      },
+      config = function()
+        vim.cmd.colorscheme 'edge'
+      end
+    },
+    {
+      'gregsexton/Gravity',
+      priority = 1000,
+      enabled = false,
+      config = function()
+        vim.cmd.colorscheme 'gravity'
+      end
+    },
+    {
+      'yorickpeterse/vim-paper',
+      priority = 1000,
+      enabled = false,
+      config = function()
+        vim.cmd.colorscheme 'paper'
+      end
+    }
   },
 
   {
@@ -174,7 +261,7 @@ vim.opt.expandtab = true
 vim.opt.smartindent = true
 
 -- Disable Sign Column
-vim.o.signcolumn = 'no'
+vim.o.signcolumn = 'yes'
 
 -- Enable mouse mode
 vim.o.mouse = 'a'
@@ -205,6 +292,10 @@ vim.o.completeopt = 'menuone,noselect'
 vim.o.termguicolors = true
 
 -- [[ Basic Keymaps ]]
+
+-- sign column remap
+vim.keymap.set("n", "<leader>2", ":lua vim.o.signcolumn = vim.o.signcolumn == 'yes' and 'no' or 'yes'<CR>",
+  { silent = true })
 
 -- Keymaps for better default experience
 -- See `:help vim.keymap.set()`
@@ -461,7 +552,19 @@ end
 local servers = {
   clangd = {},
   gopls = {},
-  pyright = {},
+  pyright = {
+    settings = {
+      python = {
+        analysis = {
+          typeCheckingMode = 'strict',
+          autoImportCompletions = true,
+          autoSearchPaths = true,
+          useLibraryCodeForTypes = true,
+          diagnosticMode = 'openFilesOnly',
+        }
+      }
+    },
+  },
   rust_analyzer = {},
   tsserver = {},
   html = { filetypes = { 'html', 'twig', 'hbs' } },
